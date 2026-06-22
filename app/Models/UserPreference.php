@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserPreference extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'theme',
@@ -178,42 +181,42 @@ class UserPreference extends Model
         $themes = [
             'romantic' => [
                 'gradient' => 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #ffecd2 50%, #a8edea 75%, #fed6e3 100%)',
-                'description' => 'Soft romantic pastels with hearts'
+                'description' => 'Soft romantic pastels with hearts',
             ],
             'elegant' => [
                 'gradient' => 'linear-gradient(135deg, #f6f6f6 0%, #e9e9e9 25%, #f1f1f1 50%, #e0e0e0 75%, #f4f4f4 100%)',
-                'description' => 'Sophisticated neutral tones'
+                'description' => 'Sophisticated neutral tones',
             ],
             'modern' => [
                 'gradient' => 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #6B73FF 50%, #9A9CE4 75%, #C9C9FF 100%)',
-                'description' => 'Contemporary purple-blue gradients'
+                'description' => 'Contemporary purple-blue gradients',
             ],
             'nature' => [
                 'gradient' => 'linear-gradient(135deg, #a8e6cf 0%, #dcedc8 25%, #c8e6c9 50%, #81c784 75%, #a5d6a7 100%)',
-                'description' => 'Fresh green nature inspired'
+                'description' => 'Fresh green nature inspired',
             ],
             'sunset' => [
                 'gradient' => 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #ffd1ff 75%, #ff9a9e 100%)',
-                'description' => 'Warm sunset colors'
+                'description' => 'Warm sunset colors',
             ],
             'ocean' => [
                 'gradient' => 'linear-gradient(135deg, #a8edea 0%, #fed6e3 25%, #a8edea 50%, #89cff0 75%, #b3e5fc 100%)',
-                'description' => 'Cool ocean blues and teals'
+                'description' => 'Cool ocean blues and teals',
             ],
             'royal' => [
                 'gradient' => 'linear-gradient(135deg, #d299c2 0%, #fef9d7 25%, #d299c2 50%, #b19cd9 75%, #c2a5f5 100%)',
-                'description' => 'Luxurious purple and gold'
+                'description' => 'Luxurious purple and gold',
             ],
             'minimal' => [
                 'gradient' => 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 25%, #ffffff 50%, #e9ecef 75%, #f8f9fa 100%)',
-                'description' => 'Clean minimal white'
-            ]
+                'description' => 'Clean minimal white',
+            ],
         ];
 
         $theme = $themes[$this->background_theme] ?? $themes['romantic'];
-        
+
         // Apply opacity modifier
-        $opacity = match($this->background_opacity) {
+        $opacity = match ($this->background_opacity) {
             'light' => '0.7',
             'bold' => '1.0',
             default => '0.85'
@@ -222,7 +225,7 @@ class UserPreference extends Model
         return [
             'gradient' => $theme['gradient'],
             'description' => $theme['description'],
-            'opacity' => $opacity
+            'opacity' => $opacity,
         ];
     }
 
@@ -233,13 +236,13 @@ class UserPreference extends Model
     {
         return [
             'romantic' => 'Romantic Pastels',
-            'elegant' => 'Elegant Neutrals', 
+            'elegant' => 'Elegant Neutrals',
             'modern' => 'Modern Purple-Blue',
             'nature' => 'Natural Greens',
             'sunset' => 'Sunset Warmth',
             'ocean' => 'Ocean Blues',
             'royal' => 'Royal Luxury',
-            'minimal' => 'Minimal Clean'
+            'minimal' => 'Minimal Clean',
         ];
     }
 }

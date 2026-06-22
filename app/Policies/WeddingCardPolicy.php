@@ -46,4 +46,4 @@ class WeddingCardPolicy
     {
         return $user->id === $weddingCard->user_id;
     }
-} 
+}

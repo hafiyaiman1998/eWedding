@@ -29,4 +29,4 @@ return new class extends Migration
             $table->dropColumn(['approval_status', 'approved_at', 'approved_by', 'rejection_reason']);
         });
     }
-}; 
+};

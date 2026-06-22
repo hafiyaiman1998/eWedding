@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GiftStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,23 +41,23 @@ class Gift extends Model
 
     public function isPaid(): bool
     {
-        return $this->status === 'paid';
+        return $this->status === GiftStatus::Paid->value;
     }
 
     public function isPending(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === GiftStatus::Pending->value;
     }
 
     public function isFailed(): bool
     {
-        return $this->status === 'failed';
+        return $this->status === GiftStatus::Failed->value;
     }
 
     public function markAsPaid(): void
     {
         $this->update([
-            'status' => 'paid',
+            'status' => GiftStatus::Paid->value,
             'paid_at' => now(),
         ]);
     }
@@ -64,19 +65,19 @@ class Gift extends Model
     public function markAsFailed(): void
     {
         $this->update([
-            'status' => 'failed',
+            'status' => GiftStatus::Failed->value,
         ]);
     }
 
     public function generateExternalReference(): string
     {
-        return 'GIFT-' . now()->format('YmdHis') . '-' . $this->id;
+        return 'GIFT-'.now()->format('YmdHis').'-'.$this->id;
     }
 
     public static function generateUniqueReference(): string
     {
         do {
-            $reference = 'GIFT-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
+            $reference = 'GIFT-'.now()->format('YmdHis').'-'.rand(1000, 9999);
         } while (static::where('external_reference_no', $reference)->exists());
 
         return $reference;

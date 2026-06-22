@@ -2,33 +2,29 @@
 
 namespace App\Services;
 
+use App\Services\Contracts\PaymentGatewayInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class ToyyibPayService
+class ToyyibPayService implements PaymentGatewayInterface
 {
     private string $baseUrl;
+
     private string $userSecretKey;
+
     private string $categoryCode;
+
     private bool $sandbox;
 
     public function __construct()
     {
         $this->sandbox = config('toyyibpay.sandbox', true);
-        $this->baseUrl = $this->sandbox 
+        $this->baseUrl = $this->sandbox
             ? 'https://dev.toyyibpay.com/index.php/api/'
             : 'https://toyyibpay.com/index.php/api/';
-        
+
         $this->userSecretKey = config('toyyibpay.user_secret_key');
         $this->categoryCode = config('toyyibpay.category_code');
-        
-        // Log configuration status (basic info only)
-        Log::info('ToyyibPay Service Initialized', [
-            'sandbox' => $this->sandbox,
-            'base_url' => $this->baseUrl,
-            'has_secret_key' => !empty($this->userSecretKey),
-            'has_category_code' => !empty($this->categoryCode)
-        ]);
     }
 
     /**
@@ -39,8 +35,8 @@ class ToyyibPayService
         $billData = [
             'userSecretKey' => trim($this->userSecretKey),
             'categoryCode' => $this->categoryCode,
-            'billName' => 'Wedding Gift from ' . $data['guest_name'],
-            'billDescription' => 'Wedding gift for ' . $data['couple_names'],
+            'billName' => 'Wedding Gift from '.$data['guest_name'],
+            'billDescription' => 'Wedding gift for '.$data['couple_names'],
             'billPriceSetting' => 1, // Fixed price
             'billPayorInfo' => 1, // Required payer info
             'billAmount' => $data['amount'] * 100, // Convert MYR to sen (smallest currency unit)
@@ -66,26 +62,26 @@ class ToyyibPayService
                 'guest_name' => $billData['billTo'],
                 'guest_email' => $billData['billEmail'],
                 'external_ref' => $billData['billExternalReferenceNo'],
-                'sandbox' => $this->sandbox
+                'sandbox' => $this->sandbox,
             ]);
-            
+
             // Send form-encoded request to ToyyibPay
-            $response = Http::timeout(30)->asForm()->post($this->baseUrl . 'createBill', $billData);
-            
+            $response = Http::timeout(30)->asForm()->post($this->baseUrl.'createBill', $billData);
+
             if ($response->successful()) {
                 $result = $response->json();
-                
+
                 if (isset($result[0]['BillCode'])) {
                     Log::info('ToyyibPay bill created successfully', [
                         'bill_code' => $result[0]['BillCode'],
                         'amount_myr' => $data['amount'],
-                        'amount_sen' => $billData['billAmount']
+                        'amount_sen' => $billData['billAmount'],
                     ]);
-                    
+
                     return [
                         'success' => true,
                         'bill_code' => $result[0]['BillCode'],
-                        'payment_url' => ($this->sandbox ? 'https://dev.toyyibpay.com/' : 'https://toyyibpay.com/') . $result[0]['BillCode'],
+                        'payment_url' => ($this->sandbox ? 'https://dev.toyyibpay.com/' : 'https://toyyibpay.com/').$result[0]['BillCode'],
                         'response' => $result,
                     ];
                 } else {
@@ -98,21 +94,23 @@ class ToyyibPayService
                     } elseif (is_array($result) && count($result) > 0) {
                         $errorMsg = json_encode($result[0]);
                     }
+
                     return [
                         'success' => false,
-                        'error' => 'Failed to create bill: ' . $errorMsg,
+                        'error' => 'Failed to create bill: '.$errorMsg,
                         'response' => $result,
                     ];
                 }
             } else {
                 Log::error('toyyibPay API error', [
-                    'status' => $response->status(), 
+                    'status' => $response->status(),
                     'body' => $response->body(),
-                    'headers' => $response->headers()
+                    'headers' => $response->headers(),
                 ]);
+
                 return [
                     'success' => false,
-                    'error' => 'Payment gateway error (HTTP ' . $response->status() . '). Please try again.',
+                    'error' => 'Payment gateway error (HTTP '.$response->status().'). Please try again.',
                     'response' => $response->json(),
                 ];
             }
@@ -121,8 +119,9 @@ class ToyyibPayService
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return [
                 'success' => false,
                 'error' => 'Connection error. Please try again.',
@@ -137,18 +136,20 @@ class ToyyibPayService
     public function getBillTransactions(string $billCode): array
     {
         try {
-            $response = Http::timeout(30)->post($this->baseUrl . 'getBillTransactions', [
+            $response = Http::timeout(30)->post($this->baseUrl.'getBillTransactions', [
                 'billCode' => $billCode,
             ]);
 
             if ($response->successful()) {
                 $result = $response->json();
+
                 return [
                     'success' => true,
                     'transactions' => $result,
                 ];
             } else {
                 Log::error('toyyibPay getBillTransactions failed', ['bill_code' => $billCode, 'response' => $response->body()]);
+
                 return [
                     'success' => false,
                     'error' => 'Failed to get bill transactions',
@@ -157,6 +158,7 @@ class ToyyibPayService
             }
         } catch (\Exception $e) {
             Log::error('toyyibPay getBillTransactions exception', ['bill_code' => $billCode, 'error' => $e->getMessage()]);
+
             return [
                 'success' => false,
                 'error' => 'Connection error',
@@ -171,8 +173,8 @@ class ToyyibPayService
     public function isBillPaid(string $billCode): bool
     {
         $result = $this->getBillTransactions($billCode);
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return false;
         }
 
@@ -191,8 +193,8 @@ class ToyyibPayService
     public function getPaymentDetails(string $billCode): ?array
     {
         $result = $this->getBillTransactions($billCode);
-        
-        if (!$result['success']) {
+
+        if (! $result['success']) {
             return null;
         }
 
@@ -212,6 +214,6 @@ class ToyyibPayService
     {
         // toyyibPay doesn't provide signature verification in their standard API
         // We'll verify by checking the bill exists and has valid status
-        return isset($data['billcode']) && !empty($data['billcode']);
+        return isset($data['billcode']) && ! empty($data['billcode']);
     }
-} 
+}

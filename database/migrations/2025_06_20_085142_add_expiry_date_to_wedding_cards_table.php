@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('wedding_cards', 'expiry_date')) {
+        if (! Schema::hasColumn('wedding_cards', 'expiry_date')) {
             Schema::table('wedding_cards', function (Blueprint $table) {
                 $table->timestamp('expiry_date')->nullable()->after('unique_url');
             });

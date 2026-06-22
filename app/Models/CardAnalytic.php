@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\AnalyticEventType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CardAnalytic extends Model
 {
@@ -18,14 +21,22 @@ class CardAnalytic extends Model
         'metadata',
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
+    }
 
     /**
      * Get the wedding card that this analytic belongs to.
      */
-    public function weddingCard()
+    public function weddingCard(): BelongsTo
     {
         return $this->belongsTo(WeddingCard::class);
     }
@@ -33,47 +44,50 @@ class CardAnalytic extends Model
     /**
      * Scope to get only view events.
      */
-    public function scopeViews($query)
+    public function scopeViews(Builder $query): Builder
     {
-        return $query->where('event_type', 'view');
+        return $query->where('event_type', AnalyticEventType::View->value);
     }
 
     /**
      * Scope to get only RSVP events.
      */
-    public function scopeRsvps($query)
+    public function scopeRsvps(Builder $query): Builder
     {
-        return $query->whereIn('event_type', ['rsvp_yes', 'rsvp_no']);
+        return $query->whereIn('event_type', [
+            AnalyticEventType::RsvpYes->value,
+            AnalyticEventType::RsvpNo->value,
+        ]);
     }
 
     /**
      * Scope to get only positive RSVP events.
      */
-    public function scopeRsvpYes($query)
+    public function scopeRsvpYes(Builder $query): Builder
     {
-        return $query->where('event_type', 'rsvp_yes');
+        return $query->where('event_type', AnalyticEventType::RsvpYes->value);
     }
 
     /**
      * Scope to get only negative RSVP events.
      */
-    public function scopeRsvpNo($query)
+    public function scopeRsvpNo(Builder $query): Builder
     {
-        return $query->where('event_type', 'rsvp_no');
+        return $query->where('event_type', AnalyticEventType::RsvpNo->value);
     }
 
     /**
      * Scope to get only share events.
      */
-    public function scopeShares($query)
+    public function scopeShares(Builder $query): Builder
     {
-        return $query->where('event_type', 'share');
+        return $query->where('event_type', AnalyticEventType::Share->value);
     }
 
     /**
      * Scope to filter by date range.
      */
-    public function scopeDateRange($query, $startDate, $endDate)
+    public function scopeDateRange(Builder $query, mixed $startDate, mixed $endDate): Builder
     {
         return $query->whereBetween('created_at', [$startDate, $endDate]);
     }
@@ -81,15 +95,15 @@ class CardAnalytic extends Model
     /**
      * Static method to track an event.
      */
-    public static function track($weddingCardId, $eventType, $metadata = [])
+    public static function track(int $weddingCardId, string|AnalyticEventType $eventType, array $metadata = []): self
     {
         return static::create([
             'wedding_card_id' => $weddingCardId,
-            'event_type' => $eventType,
+            'event_type' => $eventType instanceof AnalyticEventType ? $eventType->value : $eventType,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
             'referrer' => request()->header('referer'),
             'metadata' => $metadata,
         ]);
     }
-} 
+}

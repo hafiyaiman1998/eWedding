@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\DesignTemplate;
+use App\Models\User;
 use App\Models\WeddingCard;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $stats = [
             'total_clients' => User::clients()->count(),
@@ -29,7 +31,7 @@ class AdminDashboardController extends Controller
         return view('admin.dashboard', compact('stats'));
     }
 
-    public function analytics()
+    public function analytics(): View
     {
         $monthlyCards = WeddingCard::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
             ->whereYear('created_at', date('Y'))
@@ -45,7 +47,7 @@ class AdminDashboardController extends Controller
         return view('admin.analytics', compact('monthlyCards', 'templateUsage'));
     }
 
-    public function activity()
+    public function activity(): View
     {
         $recentActivity = [
             'recent_registrations' => User::clients()->latest()->limit(10)->get(),
@@ -66,7 +68,7 @@ class AdminDashboardController extends Controller
     /**
      * Show the settings page.
      */
-    public function settings()
+    public function settings(): View
     {
         return view('admin.settings');
     }
@@ -74,18 +76,9 @@ class AdminDashboardController extends Controller
     /**
      * Update system settings.
      */
-    public function updateSettings(Request $request)
+    public function updateSettings(UpdateSettingsRequest $request): JsonResponse
     {
         try {
-            // Validate the request
-            $request->validate([
-                'max_cards_per_user' => 'required|integer|min:1|max:100',
-                'default_card_expiry' => 'required|integer|min:1|max:3650', // Max 10 years
-                'allow_custom_domains' => 'boolean',
-                'enable_analytics' => 'boolean',
-                'auto_approve_cards' => 'boolean',
-            ]);
-
             // Save settings to database
             \App\Models\Setting::set('max_cards_per_user', $request->max_cards_per_user, 'integer', 'Maximum number of wedding cards each user can create');
             \App\Models\Setting::set('default_card_expiry_days', $request->default_card_expiry, 'integer', 'Default number of days cards remain active');
@@ -95,19 +88,19 @@ class AdminDashboardController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Settings updated successfully!'
+                'message' => 'Settings updated successfully!',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while updating settings: ' . $e->getMessage()
+                'message' => 'An error occurred while updating settings: '.$e->getMessage(),
             ], 500);
         }
     }
-} 
+}

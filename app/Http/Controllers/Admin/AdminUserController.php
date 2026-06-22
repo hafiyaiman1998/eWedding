@@ -3,26 +3,30 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AdminUserController extends Controller
 {
     /**
      * Display a listing of the clients.
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $query = User::clients()->with('weddingCards');
 
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -34,7 +38,7 @@ class AdminUserController extends Controller
     /**
      * Show the form for creating a new client.
      */
-    public function create()
+    public function create(): View
     {
         return view('admin.users.create');
     }
@@ -42,13 +46,9 @@ class AdminUserController extends Controller
     /**
      * Store a newly created client in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $validated = $request->validated();
 
         User::create([
             'name' => $validated['name'],
@@ -64,10 +64,10 @@ class AdminUserController extends Controller
     /**
      * Display the specified client.
      */
-    public function show(User $user)
+    public function show(User $user): View
     {
         // Ensure we're only showing clients, not other admins
-        if (!$user->isUser()) {
+        if (! $user->isUser()) {
             abort(404);
         }
 
@@ -79,10 +79,10 @@ class AdminUserController extends Controller
     /**
      * Show the form for editing the specified client.
      */
-    public function edit(User $user)
+    public function edit(User $user): View
     {
         // Ensure we're only editing clients, not other admins
-        if (!$user->isUser()) {
+        if (! $user->isUser()) {
             abort(404);
         }
 
@@ -92,25 +92,21 @@ class AdminUserController extends Controller
     /**
      * Update the specified client in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         // Ensure we're only updating clients, not other admins
-        if (!$user->isUser()) {
+        if (! $user->isUser()) {
             abort(404);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => 'nullable|string|min:8|confirmed',
-        ]);
+        $validated = $request->validated();
 
         $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
         }
 
@@ -123,14 +119,14 @@ class AdminUserController extends Controller
     /**
      * Remove the specified client from storage.
      */
-    public function destroy(Request $request, User $user)
+    public function destroy(Request $request, User $user): JsonResponse|RedirectResponse
     {
         // Ensure we're only deleting clients, not other admins
-        if (!$user->isUser()) {
+        if (! $user->isUser()) {
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized action.'
+                    'message' => 'Unauthorized action.',
                 ], 403);
             }
             abort(404);
@@ -139,7 +135,7 @@ class AdminUserController extends Controller
         try {
             $userName = $user->name;
             $weddingCardsCount = $user->weddingCards()->count();
-            
+
             // Delete the user (this will cascade delete wedding cards)
             $user->delete();
 
@@ -147,18 +143,18 @@ class AdminUserController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => "Client '{$userName}' and {$weddingCardsCount} wedding cards have been deleted successfully.",
-                    'redirect_url' => route('admin.users.index')
+                    'redirect_url' => route('admin.users.index'),
                 ]);
             }
 
             return redirect()->route('admin.users.index')
                 ->with('success', "Client '{$userName}' has been deleted successfully.");
-                
+
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'An error occurred while deleting the client. Please try again.'
+                    'message' => 'An error occurred while deleting the client. Please try again.',
                 ], 500);
             }
 
@@ -166,4 +162,4 @@ class AdminUserController extends Controller
                 ->with('error', 'An error occurred while deleting the client.');
         }
     }
-} 
+}

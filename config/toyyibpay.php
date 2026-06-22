@@ -11,15 +11,15 @@ return [
     */
 
     'sandbox' => env('TOYYIBPAY_SANDBOX', true),
-    
+
     'user_secret_key' => env('TOYYIBPAY_USER_SECRET_KEY'),
-    
+
     'category_code' => env('TOYYIBPAY_CATEGORY_CODE'),
-    
-    'return_url' => env('TOYYIBPAY_RETURN_URL', env('APP_URL') . '/gift/return'),
-    
-    'callback_url' => env('TOYYIBPAY_CALLBACK_URL', env('APP_URL') . '/gift/callback'),
-    
+
+    'return_url' => env('TOYYIBPAY_RETURN_URL', env('APP_URL').'/gift/return'),
+
+    'callback_url' => env('TOYYIBPAY_CALLBACK_URL', env('APP_URL').'/gift/callback'),
+
     /*
     |--------------------------------------------------------------------------
     | API URLs
@@ -29,7 +29,7 @@ return [
         'sandbox' => 'https://dev.toyyibpay.com/index.php/api/',
         'production' => 'https://toyyibpay.com/index.php/api/',
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Payment URLs
@@ -39,4 +39,4 @@ return [
         'sandbox' => 'https://dev.toyyibpay.com/',
         'production' => 'https://toyyibpay.com/',
     ],
-]; 
+];

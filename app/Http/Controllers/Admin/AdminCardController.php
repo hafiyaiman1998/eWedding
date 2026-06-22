@@ -3,32 +3,37 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\WeddingCard;
-use App\Models\User;
+use App\Http\Requests\RejectCardRequest;
+use App\Http\Requests\UpdateAdminCardRequest;
 use App\Models\DesignTemplate;
+use App\Models\User;
+use App\Models\WeddingCard;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class AdminCardController extends Controller
 {
     /**
      * Display a listing of all wedding cards.
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $query = WeddingCard::with(['user', 'designTemplate']);
 
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($userQuery) use ($search) {
-                      $userQuery->where('name', 'like', "%{$search}%")
-                               ->orWhere('email', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('designTemplate', function($templateQuery) use ($search) {
-                      $templateQuery->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('designTemplate', function ($templateQuery) use ($search) {
+                        $templateQuery->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -62,18 +67,18 @@ class AdminCardController extends Controller
     /**
      * Display only published wedding cards.
      */
-    public function published(Request $request)
+    public function published(Request $request): View
     {
         $query = WeddingCard::published()->with(['user', 'designTemplate', 'analytics', 'rsvps']);
 
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($userQuery) use ($search) {
-                      $userQuery->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -85,42 +90,30 @@ class AdminCardController extends Controller
     /**
      * Display the specified wedding card.
      */
-    public function show(WeddingCard $card)
+    public function show(WeddingCard $card): View
     {
         $card->load(['user', 'designTemplate', 'analytics', 'rsvps']);
+
         return view('admin.cards.show', compact('card'));
     }
 
     /**
      * Show the form for editing the specified wedding card.
      */
-    public function edit(WeddingCard $card)
+    public function edit(WeddingCard $card): View
     {
         $card->load(['user', 'designTemplate']);
         $templates = DesignTemplate::active()->orderBy('name')->get();
-        
+
         return view('admin.cards.edit', compact('card', 'templates'));
     }
 
     /**
      * Update the specified wedding card in storage.
      */
-    public function update(Request $request, WeddingCard $card)
+    public function update(UpdateAdminCardRequest $request, WeddingCard $card): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'design_template_id' => 'required|exists:design_templates,id',
-            'custom_message' => 'nullable|string',
-            'is_published' => 'boolean',
-            'bride_name' => 'required|string|max:255',
-            'groom_name' => 'required|string|max:255',
-            'wedding_date' => 'required|string|max:255',
-            'wedding_time' => 'nullable|string|max:255',
-            'venue' => 'nullable|string|max:255',
-            'address' => 'nullable|string',
-            'contact_bride' => 'nullable|string|max:255',
-            'contact_groom' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         // Prepare card details
         $cardDetails = [
@@ -149,7 +142,7 @@ class AdminCardController extends Controller
     /**
      * Remove the specified wedding card from storage.
      */
-    public function destroy(WeddingCard $card)
+    public function destroy(WeddingCard $card): RedirectResponse
     {
         $cardTitle = $card->title;
         $card->delete();
@@ -161,14 +154,14 @@ class AdminCardController extends Controller
     /**
      * Toggle the published status of a wedding card.
      */
-    public function togglePublished(WeddingCard $card)
+    public function togglePublished(WeddingCard $card): RedirectResponse
     {
         $card->update([
-            'is_published' => !$card->is_published
+            'is_published' => ! $card->is_published,
         ]);
 
         $status = $card->is_published ? 'published' : 'unpublished';
-        
+
         return redirect()->back()
             ->with('success', "Wedding card has been {$status} successfully.");
     }
@@ -176,16 +169,17 @@ class AdminCardController extends Controller
     /**
      * Preview the wedding card.
      */
-    public function preview(WeddingCard $card)
+    public function preview(WeddingCard $card): View
     {
         $card->load(['user', 'designTemplate']);
+
         return view('admin.cards.preview', compact('card'));
     }
 
     /**
      * Display pending approval cards.
      */
-    public function pendingApproval(Request $request)
+    public function pendingApproval(Request $request): View
     {
         $query = WeddingCard::with(['user', 'designTemplate'])
             ->pendingApproval();
@@ -193,12 +187,12 @@ class AdminCardController extends Controller
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($userQuery) use ($search) {
-                      $userQuery->where('name', 'like', "%{$search}%")
-                               ->orWhere('email', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -210,12 +204,12 @@ class AdminCardController extends Controller
     /**
      * Approve a wedding card.
      */
-    public function approve(Request $request, WeddingCard $card)
+    public function approve(Request $request, WeddingCard $card): JsonResponse
     {
-        if (!$card->isPending()) {
+        if (! $card->isPending()) {
             return response()->json([
                 'success' => false,
-                'message' => 'This card is not pending approval.'
+                'message' => 'This card is not pending approval.',
             ], 400);
         }
 
@@ -223,23 +217,19 @@ class AdminCardController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Wedding card approved and published successfully!'
+            'message' => 'Wedding card approved and published successfully!',
         ]);
     }
 
     /**
      * Reject a wedding card.
      */
-    public function reject(Request $request, WeddingCard $card)
+    public function reject(RejectCardRequest $request, WeddingCard $card): JsonResponse
     {
-        $request->validate([
-            'reason' => 'required|string|max:1000'
-        ]);
-
-        if (!$card->isPending()) {
+        if (! $card->isPending()) {
             return response()->json([
                 'success' => false,
-                'message' => 'This card is not pending approval.'
+                'message' => 'This card is not pending approval.',
             ], 400);
         }
 
@@ -247,7 +237,7 @@ class AdminCardController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Wedding card rejected successfully!'
+            'message' => 'Wedding card rejected successfully!',
         ]);
     }
-} 
+}

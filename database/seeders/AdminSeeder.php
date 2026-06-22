@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\DesignTemplate;
 use App\Models\User;
 use App\Models\WeddingCard;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
@@ -79,8 +78,8 @@ class AdminSeeder extends Seeder
                 'venue' => 'Dewan Serbaguna Taman Melawati',
                 'address' => 'Jalan Melawati 1, 53100 Kuala Lumpur',
                 'contact_bride' => '012-3456789',
-                'contact_groom' => '012-9876543'
-            ]
+                'contact_groom' => '012-9876543',
+            ],
         ]);
 
         $template2 = DesignTemplate::create([
@@ -137,8 +136,8 @@ class AdminSeeder extends Seeder
                 'groom_name' => 'Muhammad',
                 'wedding_date' => '20 September 2024',
                 'wedding_time' => '2:00 Petang',
-                'venue' => 'Dewan Bandaraya Kuala Lumpur'
-            ]
+                'venue' => 'Dewan Bandaraya Kuala Lumpur',
+            ],
         ]);
 
         $template3 = DesignTemplate::create([
@@ -196,8 +195,8 @@ class AdminSeeder extends Seeder
                 'groom_name' => 'John',
                 'wedding_date' => 'July 15, 2024',
                 'wedding_time' => '6:00 PM',
-                'venue' => 'The Grand Ballroom'
-            ]
+                'venue' => 'The Grand Ballroom',
+            ],
         ]);
 
         // Create sample clients
@@ -205,35 +204,35 @@ class AdminSeeder extends Seeder
             'name' => 'Siti Nurhaliza Abdullah',
             'email' => 'siti.nurhaliza@email.com',
             'password' => Hash::make('password123'),
-            'type' => 'user'
+            'type' => 'user',
         ]);
 
         $client2 = User::create([
             'name' => 'Ahmad Rahman Ismail',
             'email' => 'ahmad.rahman@email.com',
             'password' => Hash::make('password123'),
-            'type' => 'user'
+            'type' => 'user',
         ]);
 
         $client3 = User::create([
             'name' => 'Fatimah Zahra Mohd',
             'email' => 'fatimah.zahra@email.com',
             'password' => Hash::make('password123'),
-            'type' => 'user'
+            'type' => 'user',
         ]);
 
         $client4 = User::create([
             'name' => 'Sarah Michelle Johnson',
             'email' => 'sarah.johnson@email.com',
             'password' => Hash::make('password123'),
-            'type' => 'user'
+            'type' => 'user',
         ]);
 
         $client5 = User::create([
             'name' => 'John Davidson Smith',
             'email' => 'john.smith@email.com',
             'password' => Hash::make('password123'),
-            'type' => 'user'
+            'type' => 'user',
         ]);
 
         // Create sample wedding cards using the created templates and clients
@@ -249,11 +248,11 @@ class AdminSeeder extends Seeder
                 'venue' => 'Dewan Serbaguna Taman Melawati',
                 'address' => 'Jalan Melawati 1, 53100 Kuala Lumpur',
                 'contact_bride' => '012-3456789',
-                'contact_groom' => '012-9876543'
+                'contact_groom' => '012-9876543',
             ],
             'custom_message' => 'Dengan segala hormatnya, kami menjemput kehadiran Dato\'/Datin/Tuan/Puan untuk berkongsi kegembiraan bersama kami.',
             'is_published' => true,
-            'unique_url' => 'siti-ahmad-2024'
+            'unique_url' => 'siti-ahmad-2024',
         ]);
 
         WeddingCard::create([
@@ -268,11 +267,11 @@ class AdminSeeder extends Seeder
                 'venue' => 'Dewan Bandaraya Kuala Lumpur',
                 'address' => 'Jalan Raja, 50050 Kuala Lumpur',
                 'contact_bride' => '019-8765432',
-                'contact_groom' => '017-2345678'
+                'contact_groom' => '017-2345678',
             ],
             'custom_message' => 'Kehadiran anda amat dihargai untuk menyaksikan detik bahagia kami.',
             'is_published' => false,
-            'unique_url' => 'fatimah-muhammad-2024'
+            'unique_url' => 'fatimah-muhammad-2024',
         ]);
 
         WeddingCard::create([
@@ -287,11 +286,11 @@ class AdminSeeder extends Seeder
                 'venue' => 'The Grand Ballroom',
                 'address' => 'Shangri-La Hotel, Kuala Lumpur',
                 'contact_bride' => '012-1234567',
-                'contact_groom' => '012-7654321'
+                'contact_groom' => '012-7654321',
             ],
             'custom_message' => 'Join us for an evening of love, laughter, and happily ever after.',
             'is_published' => true,
-            'unique_url' => 'sarah-john-2024'
+            'unique_url' => 'sarah-john-2024',
         ]);
 
         // Create a few more sample cards for better demonstration
@@ -307,11 +306,11 @@ class AdminSeeder extends Seeder
                 'venue' => 'Masjid Negara',
                 'address' => 'Jalan Perdana, 50480 Kuala Lumpur',
                 'contact_bride' => '013-4567890',
-                'contact_groom' => '014-5678901'
+                'contact_groom' => '014-5678901',
             ],
             'custom_message' => 'Dengan penuh kesyukuran, kami mengundang kehadiran anda.',
             'is_published' => false,
-            'unique_url' => 'aminah-razak-2024'
+            'unique_url' => 'aminah-razak-2024',
         ]);
 
         WeddingCard::create([
@@ -326,11 +325,11 @@ class AdminSeeder extends Seeder
                 'venue' => 'Grand Hyatt Kuala Lumpur',
                 'address' => 'Jalan Pinang, 50450 Kuala Lumpur',
                 'contact_bride' => '016-7890123',
-                'contact_groom' => '018-9012345'
+                'contact_groom' => '018-9012345',
             ],
             'custom_message' => 'Satu detik kebahagiaan untuk dikongsi bersama.',
             'is_published' => true,
-            'unique_url' => 'nurul-farid-2025'
+            'unique_url' => 'nurul-farid-2025',
         ]);
 
         $this->command->info('Sample data created successfully!');

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -29,7 +29,7 @@ return new class extends Migration
                 'type' => 'integer',
                 'description' => 'Maximum number of wedding cards each user can create',
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'key' => 'default_card_expiry_days',
@@ -37,7 +37,7 @@ return new class extends Migration
                 'type' => 'integer',
                 'description' => 'Default number of days cards remain active',
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'key' => 'allow_custom_domains',
@@ -45,7 +45,7 @@ return new class extends Migration
                 'type' => 'boolean',
                 'description' => 'Allow users to use custom domains',
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'key' => 'enable_analytics_tracking',
@@ -53,7 +53,7 @@ return new class extends Migration
                 'type' => 'boolean',
                 'description' => 'Enable analytics tracking for cards',
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ],
             [
                 'key' => 'auto_approve_cards',
@@ -61,8 +61,8 @@ return new class extends Migration
                 'type' => 'boolean',
                 'description' => 'Automatically approve new cards without admin review',
                 'created_at' => now(),
-                'updated_at' => now()
-            ]
+                'updated_at' => now(),
+            ],
         ]);
     }
 
@@ -73,4 +73,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('settings');
     }
-}; 
+};

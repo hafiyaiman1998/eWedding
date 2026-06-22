@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\AttendanceStatus;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Rsvp extends Model
 {
@@ -21,14 +25,22 @@ class Rsvp extends Model
         'user_agent',
     ];
 
-    protected $casts = [
-        'number_of_guests' => 'integer',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'number_of_guests' => 'integer',
+        ];
+    }
 
     /**
      * Get the wedding card that this RSVP belongs to.
      */
-    public function weddingCard()
+    public function weddingCard(): BelongsTo
     {
         return $this->belongsTo(WeddingCard::class);
     }
@@ -36,32 +48,40 @@ class Rsvp extends Model
     /**
      * Scope to get only attending guests.
      */
-    public function scopeAttending($query)
+    public function scopeAttending(Builder $query): Builder
     {
-        return $query->where('attendance_status', 'yes');
+        return $query->where('attendance_status', AttendanceStatus::Yes->value);
     }
 
     /**
      * Scope to get only non-attending guests.
      */
-    public function scopeNotAttending($query)
+    public function scopeNotAttending(Builder $query): Builder
     {
-        return $query->where('attendance_status', 'no');
+        return $query->where('attendance_status', AttendanceStatus::No->value);
     }
 
     /**
      * Get the total number of guests for this RSVP.
      */
-    public function getTotalGuestsAttribute()
+    protected function totalGuests(): Attribute
     {
-        return $this->attendance_status === 'yes' ? $this->number_of_guests : 0;
+        return Attribute::make(
+            get: fn (): int => $this->attendance_status === AttendanceStatus::Yes->value
+                ? $this->number_of_guests
+                : 0,
+        );
     }
 
     /**
      * Get formatted attendance status.
      */
-    public function getFormattedAttendanceAttribute()
+    protected function formattedAttendance(): Attribute
     {
-        return $this->attendance_status === 'yes' ? 'Attending' : 'Not Attending';
+        return Attribute::make(
+            get: fn (): string => $this->attendance_status === AttendanceStatus::Yes->value
+                ? AttendanceStatus::Yes->label()
+                : AttendanceStatus::No->label(),
+        );
     }
-} 
+}

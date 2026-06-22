@@ -33,9 +33,9 @@ return new class extends Migration
         Schema::table('user_preferences', function (Blueprint $table) {
             $table->dropColumn([
                 'background_theme',
-                'background_animation_enabled', 
+                'background_animation_enabled',
                 'background_opacity',
-                'background_blur_enabled'
+                'background_blur_enabled',
             ]);
         });
     }

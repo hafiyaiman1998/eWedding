@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DesignTemplate extends Model
 {
@@ -21,16 +23,24 @@ class DesignTemplate extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'default_variables' => 'array',
-        'is_malaysian_design' => 'boolean',
-        'is_active' => 'boolean',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'default_variables' => 'array',
+            'is_malaysian_design' => 'boolean',
+            'is_active' => 'boolean',
+        ];
+    }
 
     /**
      * Get the wedding cards that use this template.
      */
-    public function weddingCards()
+    public function weddingCards(): HasMany
     {
         return $this->hasMany(WeddingCard::class);
     }
@@ -38,7 +48,7 @@ class DesignTemplate extends Model
     /**
      * Scope to get only Malaysian designs.
      */
-    public function scopeMalaysian($query)
+    public function scopeMalaysian(Builder $query): Builder
     {
         return $query->where('is_malaysian_design', true);
     }
@@ -46,7 +56,7 @@ class DesignTemplate extends Model
     /**
      * Scope to get only active templates.
      */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }

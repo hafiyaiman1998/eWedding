@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Enums;
+
+enum ApprovalStatus: string
+{
+    case Pending = 'pending';
+    case Approved = 'approved';
+    case Rejected = 'rejected';
+
+    /**
+     * Get all enum values.
+     *
+     * @return list<string>
+     */
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Pending => 'Pending Approval',
+            self::Approved => 'Approved',
+            self::Rejected => 'Rejected',
+        };
+    }
+}

@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
 use App\Models\WeddingCard;
 use App\Policies\WeddingCardPolicy;
+use App\Services\Contracts\PaymentGatewayInterface;
+use App\Services\ToyyibPayService;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PaymentGatewayInterface::class, ToyyibPayService::class);
     }
 
     /**

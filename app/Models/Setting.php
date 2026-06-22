@@ -2,33 +2,36 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'key',
         'value',
         'type',
-        'description'
+        'description',
     ];
 
     /**
      * Get a setting value by key
      */
-    public static function get($key, $default = null)
+    public static function get(string $key, mixed $default = null): mixed
     {
         // Cache settings for 1 hour
         $cacheKey = "setting_{$key}";
-        
+
         return Cache::remember($cacheKey, 3600, function () use ($key, $default) {
             $setting = static::where('key', $key)->first();
-            
-            if (!$setting) {
+
+            if (! $setting) {
                 return $default;
             }
-            
+
             return static::castValue($setting->value, $setting->type);
         });
     }
@@ -36,27 +39,27 @@ class Setting extends Model
     /**
      * Set a setting value
      */
-    public static function set($key, $value, $type = 'string', $description = null)
+    public static function set(string $key, mixed $value, string $type = 'string', ?string $description = null): self
     {
         $setting = static::updateOrCreate(
             ['key' => $key],
             [
                 'value' => $value,
                 'type' => $type,
-                'description' => $description
+                'description' => $description,
             ]
         );
 
         // Clear the cache for this setting
         Cache::forget("setting_{$key}");
-        
+
         return $setting;
     }
 
     /**
      * Cast value to appropriate type
      */
-    protected static function castValue($value, $type)
+    protected static function castValue(mixed $value, string $type): mixed
     {
         switch ($type) {
             case 'boolean':
@@ -75,16 +78,16 @@ class Setting extends Model
     /**
      * Get all settings as key-value pairs
      */
-    public static function getAllSettings()
+    public static function getAllSettings(): array
     {
         return Cache::remember('all_settings', 3600, function () {
             $settings = static::all();
             $result = [];
-            
+
             foreach ($settings as $setting) {
                 $result[$setting->key] = static::castValue($setting->value, $setting->type);
             }
-            
+
             return $result;
         });
     }
@@ -92,7 +95,7 @@ class Setting extends Model
     /**
      * Clear all settings cache
      */
-    public static function clearCache()
+    public static function clearCache(): void
     {
         $settings = static::all();
         foreach ($settings as $setting) {
@@ -100,4 +103,4 @@ class Setting extends Model
         }
         Cache::forget('all_settings');
     }
-} 
+}

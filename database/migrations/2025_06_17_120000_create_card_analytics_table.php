@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('referrer')->nullable();
             $table->json('metadata')->nullable(); // Additional data like device type, etc.
             $table->timestamps();
-            
+
             $table->index(['wedding_card_id', 'event_type']);
             $table->index(['wedding_card_id', 'created_at']);
         });
@@ -33,4 +33,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('card_analytics');
     }
-}; 
+};

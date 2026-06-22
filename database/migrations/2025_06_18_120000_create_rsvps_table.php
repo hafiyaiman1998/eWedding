@@ -23,7 +23,7 @@ return new class extends Migration
             $table->ipAddress('ip_address')->nullable();
             $table->string('user_agent')->nullable();
             $table->timestamps();
-            
+
             $table->index(['wedding_card_id', 'attendance_status']);
             $table->index(['wedding_card_id', 'created_at']);
         });
@@ -36,4 +36,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('rsvps');
     }
-}; 
+};

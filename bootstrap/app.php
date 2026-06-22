@@ -12,10 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'user' => \App\Http\Middleware\UserMiddleware::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
-        
+
         // Exclude RSVP routes from CSRF protection since they are public routes
         $middleware->validateCsrfTokens(except: [
             'wedding-card/*/rsvp',

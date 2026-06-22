@@ -2,33 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\WeddingCard;
-use App\Models\Rsvp;
+use App\Http\Requests\CheckEmailRequest;
+use App\Http\Requests\StoreRsvpRequest;
+use App\Http\Requests\UpdateRsvpRequest;
 use App\Models\CardAnalytic;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use App\Models\Rsvp;
+use App\Models\WeddingCard;
+use Illuminate\Http\JsonResponse;
 
 class RsvpController extends Controller
 {
     /**
      * Store a new RSVP response for a wedding card.
      */
-    public function store(Request $request, $unique_url)
+    public function store(StoreRsvpRequest $request, string $unique_url): JsonResponse
     {
         // Find the wedding card
         $card = WeddingCard::where('unique_url', $unique_url)
             ->where('is_published', true)
             ->firstOrFail();
 
-        // Validate the request
-        $validated = $request->validate([
-            'guest_name' => 'required|string|max:255',
-            'guest_email' => 'required|email|max:255',
-            'guest_phone' => 'nullable|string|max:20',
-            'attendance_status' => 'required|in:yes,no',
-            'number_of_guests' => 'nullable|integer|min:1|max:10',
-            'message' => 'nullable|string|max:1000',
-        ]);
+        $validated = $request->validated();
 
         // Check if this email has already RSVPed for this card
         $existingRsvp = Rsvp::where('wedding_card_id', $card->id)
@@ -38,12 +32,12 @@ class RsvpController extends Controller
         if ($existingRsvp) {
             return response()->json([
                 'success' => false,
-                'message' => 'You have already submitted an RSVP for this wedding. If you need to make changes, please contact the couple directly.'
+                'message' => 'You have already submitted an RSVP for this wedding. If you need to make changes, please contact the couple directly.',
             ], 422);
         }
 
         // Set default number of guests if not provided
-        if (!isset($validated['number_of_guests'])) {
+        if (! isset($validated['number_of_guests'])) {
             $validated['number_of_guests'] = $validated['attendance_status'] === 'yes' ? 1 : 0;
         }
 
@@ -69,13 +63,13 @@ class RsvpController extends Controller
             'metadata' => [
                 'guest_name' => $validated['guest_name'],
                 'number_of_guests' => $validated['number_of_guests'],
-                'has_message' => !empty($validated['message']),
+                'has_message' => ! empty($validated['message']),
             ],
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => $validated['attendance_status'] === 'yes' 
+            'message' => $validated['attendance_status'] === 'yes'
                 ? 'Thank you for your RSVP! We look forward to celebrating with you.'
                 : 'Thank you for letting us know. We\'ll miss you on our special day!',
             'rsvp' => [
@@ -83,14 +77,14 @@ class RsvpController extends Controller
                 'guest_name' => $rsvp->guest_name,
                 'attendance_status' => $rsvp->attendance_status,
                 'number_of_guests' => $rsvp->number_of_guests,
-            ]
+            ],
         ]);
     }
 
     /**
      * Update an existing RSVP (for rare cases where changes are needed).
      */
-    public function update(Request $request, $unique_url, Rsvp $rsvp)
+    public function update(UpdateRsvpRequest $request, string $unique_url, Rsvp $rsvp): JsonResponse
     {
         // Find the wedding card
         $card = WeddingCard::where('unique_url', $unique_url)
@@ -102,17 +96,10 @@ class RsvpController extends Controller
             abort(404);
         }
 
-        // Validate the request
-        $validated = $request->validate([
-            'guest_name' => 'required|string|max:255',
-            'guest_phone' => 'nullable|string|max:20',
-            'attendance_status' => 'required|in:yes,no',
-            'number_of_guests' => 'nullable|integer|min:1|max:10',
-            'message' => 'nullable|string|max:1000',
-        ]);
+        $validated = $request->validated();
 
         // Set default number of guests if not provided
-        if (!isset($validated['number_of_guests'])) {
+        if (! isset($validated['number_of_guests'])) {
             $validated['number_of_guests'] = $validated['attendance_status'] === 'yes' ? 1 : 0;
         }
 
@@ -146,19 +133,15 @@ class RsvpController extends Controller
                 'guest_name' => $rsvp->guest_name,
                 'attendance_status' => $rsvp->attendance_status,
                 'number_of_guests' => $rsvp->number_of_guests,
-            ]
+            ],
         ]);
     }
 
     /**
      * Get RSVP status for a specific email (to check if already submitted).
      */
-    public function checkEmail(Request $request, $unique_url)
+    public function checkEmail(CheckEmailRequest $request, string $unique_url): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
-
         $card = WeddingCard::where('unique_url', $unique_url)
             ->where('is_published', true)
             ->firstOrFail();
@@ -175,7 +158,7 @@ class RsvpController extends Controller
                 'attendance_status' => $rsvp->attendance_status,
                 'number_of_guests' => $rsvp->number_of_guests,
                 'submitted_at' => $rsvp->created_at->format('M d, Y \a\t h:i A'),
-            ] : null
+            ] : null,
         ]);
     }
-} 
+}

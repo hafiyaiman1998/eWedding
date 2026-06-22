@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use App\Models\User;
-use App\Models\WeddingCard;
+use App\Enums\UserType;
+use App\Http\Requests\LoginRequest;
 use App\Models\CardAnalytic;
 use App\Models\Rsvp;
+use App\Models\WeddingCard;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
     /**
      * Show the login form
      */
-    public function showLoginForm()
+    public function showLoginForm(): View
     {
         return view('auth.login');
     }
@@ -23,34 +25,25 @@ class AuthController extends Controller
     /**
      * Handle login request
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request): RedirectResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
         $credentials = $request->only('email', 'password');
         $remember = $request->has('remember');
 
         // Try to authenticate user
         if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
-            
+
             // Redirect based on user type
-            if ($user->type === 'admin') {
+            if ($user->isAdmin()) {
                 // Login as admin guard as well
                 Auth::guard('admin')->login($user, $remember);
+
                 return redirect()->intended('/admin/dashboard');
             } else {
                 // Login as user guard as well
                 Auth::guard('user')->login($user, $remember);
+
                 return redirect()->intended('/user/dashboard');
             }
         }
@@ -63,7 +56,7 @@ class AuthController extends Controller
     /**
      * Handle logout request
      */
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         // Logout from all guards
         Auth::guard('web')->logout();
@@ -77,9 +70,21 @@ class AuthController extends Controller
     }
 
     /**
+     * Redirect authenticated users to the dashboard for their type.
+     */
+    public function dashboard(): RedirectResponse
+    {
+        if (Auth::user()->type === UserType::Admin->value) {
+            return redirect('/admin/dashboard');
+        }
+
+        return redirect('/user/dashboard');
+    }
+
+    /**
      * Show admin dashboard
      */
-    public function adminDashboard()
+    public function adminDashboard(): View
     {
         return view('admin.dashboard');
     }
@@ -87,11 +92,11 @@ class AuthController extends Controller
     /**
      * Show user dashboard
      */
-    public function userDashboard()
+    public function userDashboard(): View
     {
         $user = Auth::user();
         $cardIds = WeddingCard::where('user_id', $user->id)->pluck('id');
-        
+
         $stats = [
             'total_cards' => WeddingCard::where('user_id', $user->id)->count(),
             'published_cards' => WeddingCard::where('user_id', $user->id)->where('is_published', true)->count(),
@@ -105,4 +110,4 @@ class AuthController extends Controller
 
         return view('user.dashboard', compact('stats'));
     }
-} 
+}
